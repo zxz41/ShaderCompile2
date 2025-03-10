@@ -311,7 +311,7 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 
 		if ( !skip.empty() )
 		{
-			file << "//================ All skip statements that will affect this file. ================//\n//\n"sv;
+			file << "//=============== All skip statements that will affect this shader. ===============//\n//\n"sv;
 			for ( auto& s : skip )
 				file << "// "sv << s << "\n"sv;
 			file << "//\n//=================================================================================//\n\n"sv;
