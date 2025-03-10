@@ -311,10 +311,10 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 
 		if ( !skip.empty() )
 		{
-			file << "// ALL SKIP STATEMENTS THAT AFFECT THIS SHADER!!!\n"sv;
+			file << "//================ All skip statements that will affect this file. ================//\n//\n"sv;
 			for ( auto& s : skip )
 				file << "// "sv << s << "\n"sv;
-			file << "\n"sv;
+			file << "//\n//=================================================================================//\n\n"sv;
 		}
 
 		file << "#pragma once\n" R"(#include "shaderlib/cshader.h")" "\n"sv;
