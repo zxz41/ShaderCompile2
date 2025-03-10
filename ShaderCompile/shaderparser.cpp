@@ -317,7 +317,15 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 			file << "//\n//=================================================================================//\n\n"sv;
 		}
 
-		file << "#pragma once\n" R"(#include "shaderlib/cshader.h")" "\n"sv;
+		// Create header guards.
+		std::string nameHeaderGuard( name.length(), ' ' );
+		std::transform( name.begin(), name.end(), nameHeaderGuard.begin(), []( const char& c ) { return (char)std::toupper( c ); } );
+		nameHeaderGuard += "_H";
+
+		file << "#ifndef "sv << nameHeaderGuard << "\n"sv;
+		file << "#define "sv << nameHeaderGuard << "\n"sv;
+		file << "#ifdef _WIN32\n#pragma once\n#endif\n\n"sv;
+		file << R"(#include "shaderlib/cshader.h")" "\n\n"sv;
 
 		writeVars( "Static"sv, static_c, ""sv,
 			std::accumulate( dynamic_c.begin(), dynamic_c.end(), 1U, []( uint32_t a, const Combo& b ) { return a * ( b.maxVal - b.minVal + 1 ); } ), false );
@@ -360,6 +368,8 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 
 			file << "inline const class ConstructMe_"sv << name << "\n{\npublic:\n\tConstructMe_"sv << name << "()\n\t{\n\t\tGetShaderDLL()->AddShaderComboInformation( &"sv << name << "_combos );\n\t}\n} s_ConstuctMe_"sv << name << ";"sv;
 		}
+
+		file << "#endif // "sv << nameHeaderGuard;
 	}
 
 	fs::permissions( fileName, fs::perms::owner_read );
