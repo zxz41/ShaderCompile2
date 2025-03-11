@@ -320,7 +320,7 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 		// Create header guards.
 		std::string nameHeaderGuard( name.length(), ' ' );
 		std::transform( name.begin(), name.end(), nameHeaderGuard.begin(), []( const char& c ) { return (char)std::toupper( c ); } );
-		nameHeaderGuard += "_H";
+		nameHeaderGuard += "_INC_H";
 
 		file << "#ifndef "sv << nameHeaderGuard << "\n"sv;
 		file << "#define "sv << nameHeaderGuard << "\n"sv;
