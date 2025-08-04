@@ -283,48 +283,48 @@ static robin_hood::unordered_node_map<std::string_view, CompilerMsg> g_CompilerM
 
 namespace Threading
 {
-class null_mutex
-{
-public:
-	void lock() noexcept {}
-	void unlock() noexcept {}
-};
-
-// A special object that makes single-threaded code incur no penalties
-// and multithreaded code to be synchronized properly.
-template <auto& mtx>
-class CSwitchableMutex
-{
-	using mtx_type = std::decay_t<decltype( mtx )>;
-public:
-	explicit CSwitchableMutex() noexcept : m_pUseMtx( nullptr ) {}
-
-	void EnableThreadedMode() noexcept { m_pUseMtx = &mtx; }
-
-	void lock()
+	class null_mutex
 	{
-		if ( mtx_type* pUseMtx = m_pUseMtx )
-			pUseMtx->lock();
-	}
+	public:
+		void lock() noexcept {}
+		void unlock() noexcept {}
+	};
 
-	void unlock()
+	// A special object that makes single-threaded code incur no penalties
+	// and multithreaded code to be synchronized properly.
+	template <auto& mtx>
+	class CSwitchableMutex
 	{
-		if ( mtx_type* pUseMtx = m_pUseMtx )
-			pUseMtx->unlock();
-	}
+		using mtx_type = std::decay_t<decltype( mtx )>;
+	public:
+		explicit CSwitchableMutex() noexcept : m_pUseMtx( nullptr ) {}
 
-private:
-	std::atomic<mtx_type*> m_pUseMtx;
-};
+		void EnableThreadedMode() noexcept { m_pUseMtx = &mtx; }
 
-namespace Private
-{
-	static std::mutex g_mtxSyncObjMT;
-	static std::mutex g_mtxSyncObjMT2;
-}; // namespace Private
+		void lock()
+		{
+			if ( mtx_type* pUseMtx = m_pUseMtx )
+				pUseMtx->lock();
+		}
 
-static CSwitchableMutex<Private::g_mtxSyncObjMT> g_mtxGlobal;
-static CSwitchableMutex<Private::g_mtxSyncObjMT2> g_mtxMsgReport;
+		void unlock()
+		{
+			if ( mtx_type* pUseMtx = m_pUseMtx )
+				pUseMtx->unlock();
+		}
+
+	private:
+		std::atomic<mtx_type*> m_pUseMtx;
+	};
+
+	namespace Private
+	{
+		static std::mutex g_mtxSyncObjMT;
+		static std::mutex g_mtxSyncObjMT2;
+	}; // namespace Private
+
+	static CSwitchableMutex<Private::g_mtxSyncObjMT> g_mtxGlobal;
+	static CSwitchableMutex<Private::g_mtxSyncObjMT2> g_mtxMsgReport;
 }; // namespace Threading
 
 static void ErrMsgDispatchMsgLine( const char* szCommand, const char* szMsgLine, std::string_view szName )
