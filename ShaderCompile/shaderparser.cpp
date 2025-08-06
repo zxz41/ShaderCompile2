@@ -192,7 +192,6 @@ static bool ReadFile( const fs::path& name, const std::string& srcPath, std::vec
 }
 
 static constexpr const char validL[] = { 'v', 'p', 'g', 'h', 'd' };
-static constexpr const char validU[] = { 'V', 'P', 'G', 'H', 'D' };
 bool Parser::ParseFile( const fs::path& name, const std::string& root, const std::string_view& target, const std::string_view& version, CfgProcessor::ShaderConfig& conf )
 {
 	using re2::RE2;
