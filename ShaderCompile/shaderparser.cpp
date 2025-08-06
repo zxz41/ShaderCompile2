@@ -40,19 +40,67 @@ namespace fs = std::filesystem;
 namespace r
 {
 	using namespace re2;
+	
+	// Group 0: #include "common_example.h"
+	// Group 1: common_example.h
 	static const RE2 inc( R"reg(#\s*include\s*"(.*)")reg" );
+
+	// Group 0: [XBOX]
 	static const RE2 xbox_reg( R"reg(\[XBOX\])reg" );
+
+	// Group 0: [PC]
 	static const RE2 pc_reg( R"reg(\[PC\])reg" );
+
+	// Group 0: // STATIC: "EXAMPLE" "0..1"
+	// Group 1: STATIC
+	// Group 2: "EXAMPLE" "0..1"
 	static const RE2 start( R"reg(^\s*//\s*(STATIC|DYNAMIC|SKIP|CENTROID|[VPGDH]S_MAIN)\s*:\s*(.*)$)reg" );
+
+	// Group 0: [= g_pMyGlobal->MyMethod()]
+	// Group 1: g_pMyGlobal->MyMethod()
 	static const RE2 init( R"reg(\[\s*=\s*([^\]]+)\])reg" );
+
+	// Group 0: // STATIC: "EXAMPLE" "0..1" [= g_pMyGlobal->MyMethod()]
+	// Group 1: EXAMPLE
+	// Group 2: 0
+	// Group 3: 1
 	static const RE2 static_combo( R"reg(^\s*//\s*STATIC\s*:\s*"(.*)"\s+"(\d+)\.\.(\d+)".*)reg" );
+
+	// Group 0: // DYNAMIC: "EXAMPLE" "0..1" [= g_pMyGlobal->MyMethod()]
+	// Group 1: EXAMPLE
+	// Group 2: 0
+	// Group 3: 1
 	static const RE2 dynamic_combo( R"reg(^\s*//\s*DYNAMIC\s*:\s*"(.*)"\s+"(\d+)\.\.(\d+)".*)reg" );
+
+	// Group 0: // CENTROID: TEXCOORD0
+	// Group 1: 0
 	static const RE2 centroid( R"reg(^\s*//\s*CENTROID\s*:\s*TEXCOORD(\d+).*$)reg" );
+
+	// Group 0: C:\hl2_rel\src\materialsystem\stdshaders\example_model_ps20b
+	// Group 1: C:\hl2_rel\src\materialsystem\stdshaders\example_model
+	// Group 2: 20b
 	static const RE2 base_name( R"reg(^(.*)_[vpgdh]s(\d\db|\d\d|\dx|xx))reg" );
+
+	// Group 0: C:\hl2_rel\src\materialsystem\stdshaders\example_model_ps20b
+	// Group 1: ps
+	// Group 2: 20b
 	static const RE2 target( R"reg(^.*_([vpgdh]s)(\d\db|\d\d|\dx|xx))reg" );
+
+	// Group 0: MyMethod(flUsedVar, /*
+	// Group 1: MyMethod(flUsedVar, (TRAILING WHITESPACE)
 	static const RE2 c_comment_start( R"reg(^(.*)\/\*)reg");
+
+	// Group 0: */, flUsedVar);
+	// Group 1: , flUsedVar);
 	static const RE2 c_comment_end( R"reg(\*\/(.*)$)reg");
+
+	// Group 0: MyMethod(flUsedVar, /*flUnusedVar*/);
+	// Group 1: MyMethod(flUsedVar, (TRAILING WHITESPACE)
+	// Group 2: );
 	static const RE2 c_inline_comment( R"reg(^(.*)\/\*.*?\*\/(.*))reg");
+
+	// Group 0: float flLineHaveEmptyComment = 0.0f; //
+	// Group 1: float flLineHaveEmptyComment = 0.0f; (TRAILING WHITESPACE)
 	static const RE2 cpp_comment( R"reg(^(.*)\/\/$)reg");
 }
 
