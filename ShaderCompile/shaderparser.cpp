@@ -430,7 +430,9 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 			{
 				file << "static constexpr ShaderComboInformation_t s_"sv << ( dynamic ? "Dynamic"sv : "Static"sv ) << "ComboArray_"sv << name << "[] =\n{\n"sv;
 				for ( const Combo& c : combos )
+				{
 					file << "\t{ \""sv << c.name << "\", "sv << c.minVal << ", "sv << c.maxVal << " },\n"sv;
+				}
 				file << "};\n"sv;
 			};
 
