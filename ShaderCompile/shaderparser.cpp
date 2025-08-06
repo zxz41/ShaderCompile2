@@ -299,48 +299,82 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 		{
 			file << "class "sv << name << "_"sv << suffix << "_Index\n{\n";
 			const bool hasIfdef = std::find_if( vars.begin(), vars.end(), []( const Combo& c ) { return c.initVal.empty(); } ) != vars.end();
+
 			for ( const Combo& c : vars )
+			{
 				file << "\tunsigned int m_n"sv << c.name << " : "sv << bit_width( uint32_t( c.maxVal - c.minVal + 1 ) ) << ";\n"sv;
+			}
+
 			if ( hasIfdef )
 				file << "#ifdef _DEBUG\n"sv;
+
 			for ( const Combo& c : vars )
+			{
 				if ( c.initVal.empty() )
 					file << "\tbool m_b"sv << c.name << " : 1;\n"sv;
+			}
+
 			if ( hasIfdef )
 				file << "#endif\t// _DEBUG\n"sv;
+
 			file << "public:\n"sv;
+
 			for ( const Combo& c : vars )
 			{
 				file << "\tvoid Set"sv << c.name << "( int i )\n\t{\n"sv;
 				file << "\t\tAssert( i >= "sv << c.minVal << " && i <= "sv << c.maxVal << " );\n"sv;
 				if ( c.minVal == 0 )
+				{
 					file << "\t\tm_n"sv << c.name << " = i;\n"sv;
+				}
 				else
+				{
 					file << "\t\tm_n"sv << c.name << " = i - "sv << c.minVal << ";\n"sv;
+				}
+
 				if ( c.initVal.empty() )
+				{
 					file << "#ifdef _DEBUG\n\t\tm_b"sv << c.name << " = true;\n#endif\t// _DEBUG\n"sv;
+				}
+
 				file << "\t}\n\n"sv;
 			}
+
 			file << "\t"sv << name << "_"sv << suffix << "_Index( "sv << ctor << " )\n\t{\n"sv;
+
 			for ( const Combo& c : vars )
+			{
 				file << "\t\tm_n"sv << c.name << " = "sv << ( c.initVal.empty() ? "0"sv : c.initVal ) << ";\n"sv;
+			}
+
 			if ( hasIfdef )
 				file << "#ifdef _DEBUG\n"sv;
+
 			for ( const Combo& c : vars )
+			{
 				if ( c.initVal.empty() )
 					file << "\t\tm_b"sv << c.name << " = false;\n"sv;
+			}
+
 			if ( hasIfdef )
 				file << "#endif\t// _DEBUG\n"sv;
+
 			file << "\t}\n\n\tint GetIndex() const\n\t{\n"sv;
+
 			if ( vars.empty() )
+			{
 				file << "\t\treturn 0;\n"sv;
+			}
 			else
 			{
 				if ( hasIfdef )
 					file << "\t\tAssert( "sv << std::accumulate( vars.begin(), vars.end(), ""s, []( const std::string& s, const Combo& c ) { return c.initVal.empty() ? ( s + " && m_b" + c.name ) : s; } ).substr( 4 ) << " );\n"sv;
+
 				const auto skipAsserts = ConfigurationProcessing::GenerateSkipAsserts( dynamic ? dynamic_c : static_c, skip );
 				for ( const auto& [msg, check] : skipAsserts )
+				{
 					file << "\t\tAssertMsg( !"sv << check << ", \"Invalid combo combination "sv << msg << "\" );\n"sv;
+				}
 				file << "\t\treturn "sv;
 				for ( const Combo& c : vars )
 				{
@@ -349,16 +383,23 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 				}
 				file << "0;\n"sv;
 			}
+
 			file << "\t}\n};\n\n"sv;
 
 			std::string suffixLower( suffix.length(), ' ' );
 			std::transform( suffix.begin(), suffix.end(), suffixLower.begin(), []( const char& c ) { return (char)std::tolower( c ); } );
 			const std::string& pref = prefix + "forgot_to_set_"s + suffixLower + "_"s;
 			file << "#define shader"sv << suffix << "Test_"sv << name << " "sv;
+
 			if ( hasIfdef )
+			{
 				file << std::accumulate( vars.begin(), vars.end(), ""s, [&pref]( const std::string& s, const Combo& c ) { return c.initVal.empty() ? ( s + " + " + pref + c.name ) : s; } ).substr( 3 );
+			}
 			else
+			{
 				file << "1"sv;
+			}
+
 			file << "\n\n"sv;
 		};
 
@@ -366,7 +407,9 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 		{
 			file << "// ALL SKIP STATEMENTS THAT AFFECT THIS SHADER!!!\n"sv;
 			for ( auto& s : skip )
+			{
 				file << "// "sv << s << "\n"sv;
+			}
 			file << "\n"sv;
 		}
 
@@ -400,17 +443,24 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 			file << "static constexpr ShaderComboSemantics_t "sv << name << "_combos =\n{\n\t\""sv << name << "\", "sv;
 
 			if ( !dynamic_c.empty() )
+			{
 				file << "s_DynamicComboArray_"sv << name << ", "sv << dynamic_c.size() << ", "sv;
+			}
 			else
+			{
 				file << "nullptr, 0, "sv;
+			}
 
 			if ( !static_c.empty() )
+			{
 				file << "s_StaticComboArray_"sv << name << ", "sv << static_c.size();
+			}
 			else
+			{
 				file << "nullptr, 0"sv;
+			}
 
 			file << "\n};\n"sv;
-
 			file << "inline const class ConstructMe_"sv << name << "\n{\npublic:\n\tConstructMe_"sv << name << "()\n\t{\n\t\tGetShaderDLL()->AddShaderComboInformation( &"sv << name << "_combos );\n\t}\n} s_ConstuctMe_"sv << name << ";"sv;
 		}
 	}
