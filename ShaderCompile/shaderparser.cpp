@@ -149,8 +149,6 @@ bool Parser::ParseFile( const fs::path& name, const std::string& root, const std
 {
 	using re2::RE2;
 	conf.centroid_mask = 0U;
-	const auto nameS = name.string();
-	const auto f = nameS.find_last_of( '.' );
 	char regMatch[] = { R"reg(\[ s(\d+\w?)\])reg" };
 	char regNotMatch[] = { R"reg(\[[    ]s\d+\w?\])reg" };
 	std::string mainCat = " S_MAIN"s;
