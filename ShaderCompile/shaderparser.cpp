@@ -191,23 +191,31 @@ static bool ReadFile( const fs::path& name, const std::string& srcPath, std::vec
 	return !cComment;
 }
 
-static constexpr const char validL[] = { 'v', 'p', 'g', 'h', 'd' };
+static constexpr const char validTargetTypes[] = { 'v', 'p', 'g', 'h', 'd' };
+static constexpr const int numTargetTypes = sizeof( validTargetTypes );
 bool Parser::ParseFile( const fs::path& name, const std::string& root, const std::string_view& target, const std::string_view& version, CfgProcessor::ShaderConfig& conf )
 {
 	using re2::RE2;
+	conf.main = "main"s;
 	conf.centroid_mask = 0U;
 	char regMatch[] = { R"reg(\[ s(\d+\w?)\])reg" };
 	char regNotMatch[] = { R"reg(\[[    ]s\d+\w?\])reg" };
 	std::string mainCat = " S_MAIN"s;
 
+	// Fill empty spaces with an valid target type letter initial.
 	regMatch[2] = target[0];
-	for ( int i = 0, j = 0; i < 5; ++i )
-		if ( validL[i] != target[0] )
-			regNotMatch[3 + j++] = validL[i];
 	mainCat[0] = toupper( target[0] );
+
+	for ( int i = 0, pos = 3; i < numTargetTypes; i++ )
+	{
+		if ( target[0] == validTargetTypes[i] )
+			continue;
+
+		regNotMatch[pos++] = validTargetTypes[i];
+	}
+
 	const RE2 shouldMatch( regMatch );
 	const RE2 shouldNotMatch( regNotMatch );
-	conf.main = "main"s;
 
 	const auto& trim = []( std::string s ) -> std::string
 	{
