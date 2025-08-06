@@ -386,13 +386,13 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 
 			file << "\t}\n};\n\n"sv;
 
-			std::string suffixLower( suffix.length(), ' ' );
-			std::transform( suffix.begin(), suffix.end(), suffixLower.begin(), []( const char& c ) { return (char)std::tolower( c ); } );
-			const std::string& pref = prefix + "forgot_to_set_"s + suffixLower + "_"s;
 			file << "#define shader"sv << suffix << "Test_"sv << name << " "sv;
 
 			if ( hasIfdef )
 			{
+				std::string suffixLower( suffix.length(), ' ' );
+				std::transform( suffix.begin(), suffix.end(), suffixLower.begin(), []( const char& c ) { return (char)std::tolower( c ); } );
+				const std::string& pref = prefix + "forgot_to_set_"s + suffixLower + "_"s;
 				file << std::accumulate( vars.begin(), vars.end(), ""s, [&pref]( const std::string& s, const Combo& c ) { return c.initVal.empty() ? ( s + " + " + pref + c.name ) : s; } ).substr( 3 );
 			}
 			else
