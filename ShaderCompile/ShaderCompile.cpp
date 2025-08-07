@@ -1075,7 +1075,7 @@ public:
 	void ProcessCommandRange( uint64_t shaderStart, uint64_t shaderEnd );
 
 	void Stop();
-	bool Stoped() const { return m_bStopped; }
+	bool Stopped() const { return m_bStopped; }
 
 protected:
 	void Startup( uint32_t flags );
@@ -1256,7 +1256,7 @@ static void CompileShaders( std::unique_ptr<CfgProcessor::CfgEntryInfo[]> arrEnt
 		//
 		pcr.ProcessCommandRange( pEntry->m_iCommandStart, pEntry->m_iCommandEnd );
 
-		if ( pcr.Stoped() )
+		if ( pcr.Stopped() )
 			break;
 
 		//
