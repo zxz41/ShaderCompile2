@@ -746,8 +746,18 @@ static size_t AssembleWorkerReplyPackage( const CfgProcessor::CfgEntryInfo* pEnt
 			s_averageProcess.PushValue( s_nLastEntry - nComboOfEntry );
 			s_nLastEntry = nComboOfEntry;
 			const auto avg = s_averageProcess.GetAverage();
-			std::cout << "\r"sv << clr::escaped( lineRewind ) << "Compiling "sv << ( g_ShaderHadError.contains( pEntry->m_szName ) ? clr::red : clr::green ) << pEntry->m_szName << clr::reset << " ["sv << clr::blue << PrettyPrint( nComboOfEntry ) << clr::reset << " remaining] "sv
-				<< FormatTimeShort( duration_cast<chrono::seconds>( fCurTime - g_flStartTime ).count() ) << " elapsed ("sv << clr::green2 << avg << clr::reset << " c/s, est. remaining "sv << FormatTimeShort( nComboOfEntry / std::max<uint64_t>( avg, 1 ) ) << ")"sv << endLine;
+			std::cout << "\r"sv << clr::escaped( lineRewind )
+				// Compiling pEntry->m_szName
+				<< "Compiling "sv << ( g_ShaderHadError.contains( pEntry->m_szName ) ? clr::red : clr::green ) << pEntry->m_szName << clr::reset
+				// [nComboOfEntry remaining]
+				<< " ["sv << clr::blue << PrettyPrint( nComboOfEntry ) << clr::reset << " remaining] "sv
+				// n seconds elapsed
+				<< FormatTimeShort( duration_cast<chrono::seconds>( fCurTime - g_flStartTime ).count() ) << " elapsed ("sv
+				// "avg c/s est. remaining
+				<< clr::green2 << avg << clr::reset << " c/s, est. remaining "sv
+				// ((estimated remaining time))
+				<< FormatTimeShort( nComboOfEntry / std::max<uint64_t>( avg, 1 ) ) << ")"sv
+				<< endLine;
 			s_fLastInfoTime = fCurTime;
 		}
 	}
@@ -1227,7 +1237,10 @@ static std::unique_ptr<CfgProcessor::CfgEntryInfo[]> Shared_ParseListOfCompileCo
 
 	const Clock::time_point tt_end = Clock::now();
 
-	std::cout << "\rCompiling "sv << clr::green << PrettyPrint( numCompileCommands ) << clr::reset << " commands  in "sv << clr::green << PrettyPrint( numStaticCombos ) << clr::reset << " static combos, setup took "sv << clr::green << duration_cast<chrono::seconds>( tt_end - tt_start ).count() << clr::reset << " seconds."sv << endLine;
+	std::cout << "\rCompiling "sv << clr::green << PrettyPrint( numCompileCommands ) << clr::reset
+		<< " commands  in "sv << clr::green << PrettyPrint( numStaticCombos ) << clr::reset
+		<< " static combos, setup took "sv << clr::green << duration_cast<chrono::seconds>( tt_end - tt_start ).count() << clr::reset
+		<< " seconds."sv << endLine;
 
 	return arrEntries;
 }
