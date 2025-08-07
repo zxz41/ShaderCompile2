@@ -368,7 +368,18 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 			else
 			{
 				if ( hasIfdef )
-					file << "\t\tAssert( "sv << std::accumulate( vars.begin(), vars.end(), ""s, []( const std::string& s, const Combo& c ) { return c.initVal.empty() ? ( s + " && m_b" + c.name ) : s; } ).substr( 4 ) << " );\n"sv;
+				{
+					// EXPLAINME: What does the accumulate do??
+					file << "\t\tAssert( "sv;
+					file << std::accumulate(
+						vars.begin(),
+						vars.end(),
+						""s,
+						[]( const std::string& str, const Combo& combo )
+						{ return combo.initVal.empty() ? ( str + " && m_b" + combo.name ) : str; }
+					).substr( 4 );
+					file << " );\n"sv;
+				}
 
 				const auto skipAsserts = ConfigurationProcessing::GenerateSkipAsserts( dynamic ? dynamic_c : static_c, skip );
 				for ( const auto& [msg, check] : skipAsserts )
@@ -376,10 +387,10 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 					file << "\t\tAssertMsg( !"sv << check << ", \"Invalid combo combination "sv << msg << "\" );\n"sv;
 				}
 				file << "\t\treturn "sv;
-				for ( const Combo& c : vars )
+				for ( const Combo& combo : vars )
 				{
-					file << "( "sv << scale << " * m_n"sv << c.name << " ) + "sv;
-					scale *= c.maxVal - c.minVal + 1;
+					file << "( "sv << scale << " * m_n"sv << combo.name << " ) + "sv;
+					scale *= combo.maxVal - combo.minVal + 1;
 				}
 				file << "0;\n"sv;
 			}
@@ -391,9 +402,23 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 			if ( hasIfdef )
 			{
 				std::string suffixLower( suffix.length(), ' ' );
-				std::transform( suffix.begin(), suffix.end(), suffixLower.begin(), []( const char& c ) { return (char)std::tolower( c ); } );
+				std::transform(
+					suffix.begin(),
+					suffix.end(),
+					suffixLower.begin(),
+					[]( const char& c )
+					{ return (char)std::tolower( c ); }
+				);
+
 				const std::string& pref = prefix + "forgot_to_set_"s + suffixLower + "_"s;
-				file << std::accumulate( vars.begin(), vars.end(), ""s, [&pref]( const std::string& s, const Combo& c ) { return c.initVal.empty() ? ( s + " + " + pref + c.name ) : s; } ).substr( 3 );
+				// EXPLAINME: What does the accumulate do??
+				file << std::accumulate(
+					vars.begin(),
+					vars.end(),
+					""s,
+					[&pref]( const std::string& str, const Combo& combo )
+					{ return combo.initVal.empty() ? ( str + " + " + pref + combo.name ) : str; }
+				).substr( 3 );
 			}
 			else
 			{
@@ -415,8 +440,19 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 
 		file << "#pragma once\n" R"(#include "shaderlib/cshader.h")" "\n"sv;
 
-		writeVars( "Static"sv, static_c, ""sv,
-			std::accumulate( dynamic_c.begin(), dynamic_c.end(), 1U, []( uint32_t a, const Combo& b ) { return a * ( b.maxVal - b.minVal + 1 ); } ), false );
+		writeVars(
+			"Static"sv,
+			static_c,
+			""sv,
+			std::accumulate(
+				dynamic_c.begin(),
+				dynamic_c.end(),
+				1U,
+				[]( uint32_t a, const Combo& b )
+				{ return a * ( b.maxVal - b.minVal + 1 ); }
+			),
+			false
+		);
 
 		file << "\n"sv;
 
@@ -428,11 +464,17 @@ void Parser::WriteInclude( const fs::path& fileName, const std::string& name, co
 
 			const auto& writeComboArray = [&file, &name]( bool dynamic, const std::vector<Combo>& combos )
 			{
-				file << "static constexpr ShaderComboInformation_t s_"sv << ( dynamic ? "Dynamic"sv : "Static"sv ) << "ComboArray_"sv << name << "[] =\n{\n"sv;
+				file << "static constexpr ShaderComboInformation_t s_"sv
+					 << ( dynamic ? "Dynamic"sv : "Static"sv )
+					 << "ComboArray_"sv
+					 << name
+					 << "[] =\n{\n"sv;
+
 				for ( const Combo& c : combos )
 				{
 					file << "\t{ \""sv << c.name << "\", "sv << c.minVal << ", "sv << c.maxVal << " },\n"sv;
 				}
+
 				file << "};\n"sv;
 			};
 
